@@ -39,7 +39,7 @@ class Auth():
             "password": password,
             "scope": ""
         }
-        response = requests.request("POST", self.API_URL, data=data)
+        response = requests.request("POST", self.api_url, data=data)
         auth = json.loads(response.text)
         return self.__save_auth_db(auth) if "token_type" in auth else False
         

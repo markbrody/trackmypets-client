@@ -201,7 +201,8 @@ class OrderFrame(GuiFrame):
             "name":"update_label",
             "class":tk.Label,
             "init":{"master":"details_frame","background":"#fcfcfa",
-                    "font":"Helvetica 12 bold","text":"Update Status To:",},
+                    "font":"Helvetica 12 bold","text":"Update Status To:",
+                    "state":tk.DISABLED,},
             "grid":{"row":13,"columnspan":2,"sticky":"nw",}
         },{
             "name":"update_frame",
@@ -218,25 +219,29 @@ class OrderFrame(GuiFrame):
             "name":"processed_radiobutton",
             "class":tk.Radiobutton,
             "init":{"master":"update_frame","background":"#fcfcfa","value":2,
-            "variable":self.order_status,"text":"Processed",},
+                    "variable":self.order_status,"text":"Processed",
+                    "state":tk.DISABLED,},
             "grid":{"row":0,"padx":(0,30)},
         },{
             "name":"shipped_radiobutton",
             "class":tk.Radiobutton,
             "init":{"master":"update_frame","background":"#fcfcfa","value":3,
-                    "variable":self.order_status,"text":"Shipped",},
+                    "variable":self.order_status,"text":"Shipped",
+                    "state":tk.DISABLED,},
             "grid":{"row":0,"column":1,"padx":(0,30)},
         },{
             "name":"canceled_radiobutton",
             "class":tk.Radiobutton,
             "init":{"master":"update_frame","background":"#fcfcfa","value":4,
-                    "variable":self.order_status,"text":"Canceled",},
+                    "variable":self.order_status,"text":"Canceled",
+                    "state":tk.DISABLED,},
             "grid":{"row":0,"column":2,"padx":(0,30)},
         },{
             "name":"update_button",
             "class":tk.Button,
             "init":{"master":"update_frame","background":"#fcfcfa",
-                    "text":"Update","command":lambda: self.save_order_status,},
+                    "text":"Update","command":lambda: self.update_order(),
+                    "state":tk.DISABLED,},
             "grid":{"row":1,"columnspan":3,"sticky":"ew","pady":(20,0),},
         },]
 
@@ -255,6 +260,7 @@ class OrderFrame(GuiFrame):
         self.orders_treeview.bind("<ButtonRelease-1>", self.show_order)
 
     def get_orders(self, order_status_id):
+        """ Sends a GET request to the orders API for a list of orders """
         title_text = f"{self.ORDER_STATUSES[order_status_id]} Orders"
         self.title_label.config(text=title_text)
         self.order_status_id = order_status_id
@@ -270,14 +276,15 @@ class OrderFrame(GuiFrame):
                     result['created'],
                 )
                 self.orders_treeview.insert("", "end", text="text", values=values)
-        elif type(results) is dict:
-            print(results)
+        else:
+            self.process_result(results)
 
     def show_order(self, event):
+        """ Sends a GET request for an order's details """
         row = self.orders_treeview.item(self.orders_treeview.selection()[0])
         self.order_transaction_id = row['values'][1]
         result = self.order.get(id=self.order_transaction_id)
-        if type(result) is dict:
+        if "transaction_id" in result:
             order_email = result['email']
             order_transaction_id = result['transaction_id']
             order_address = "\n".join((
@@ -304,12 +311,39 @@ class OrderFrame(GuiFrame):
                 tag_line_1_text=tag_line_1, tag_line_2_text=tag_line_2,
                 sitename_text=sitename, pet_tracking_id_text=pet_tracking_id
             )
+        else:
+            self.process_result(result)
+
+    def update_order(self):
+        """ Sends a PUT request to the order API """
+        updated_status_id = self.order_status.get()
+        if updated_status_id > 0:
+            result = self.order.put(
+                id=self.order_transaction_id,
+                data={
+                    "order_status_id": updated_status_id,
+                    "shipping_id": "N/A",
+                },
+            )
+            if "transaction_id" in result:
+                self.get_orders(self.order_status_id)
+            else:
+                self.process_result(result)
 
     def clear_order(self):
+        """ Sets the current transaction_id to None and erases text values """
         self.order_transaction_id = None
         self.print_order()
 
+    def process_result(self, result):
+        """ Verifies if user is still logged in and debugs """
+        if type(result) is dict and "message" in result:
+            if result['message'] == "Unauthenticated.":
+                self.controller.raise_frame("LoginFrame")
+        print(result)
+
     def print_order(self, **details):
+        """ Replaces text values with highlighted order inromation """
         self.configure_radiobuttons()
         for child in self.details_frame.winfo_children():
             if child.winfo_class() == "Text":
@@ -323,6 +357,9 @@ class OrderFrame(GuiFrame):
         self.deselect_radiobutton.select()
 
     def configure_radiobuttons(self):
+        """ Called when rewriting the order details, an order must be selected
+            in order to enable the form.  Buttons are enable/disabled based on
+            the order status """
         if self.order_transaction_id is None:
             self.processed_radiobutton.config(state=tk.DISABLED)
             self.shipped_radiobutton.config(state=tk.DISABLED)
@@ -333,7 +370,8 @@ class OrderFrame(GuiFrame):
             if (self.order_status_id == 2):
                 processed_state = tk.DISABLED
                 shipped_state = tk.NORMAL
-                canceled_state = tk.NORMAL
+                # canceled_state = tk.NORMAL
+                canceled_state = tk.DISABLED # Only cancel new orders
             else:
                 processed_state = tk.NORMAL if self.order_status_id == 1 else tk.DISABLED
                 shipped_state = tk.NORMAL if self.order_status_id == 1 else tk.DISABLED

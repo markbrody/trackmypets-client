@@ -22,8 +22,10 @@ class RestClient:
         response = self.__request(**options)
         return json.loads(response)
 
-    def put(self):
-        pass
+    def put(self, **options):
+        options.update({"method": "PUT"})
+        response = self.__request(**options)
+        return json.loads(response)
 
     def post(self):
         pass
