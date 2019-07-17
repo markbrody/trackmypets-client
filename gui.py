@@ -124,17 +124,20 @@ class LoginFrame(GuiFrame):
 
 class OrderFrame(GuiFrame):
 
+    ORDER_STATUSES = {1: "New", 2: "Processed", 3: "Shipped", 4: "Canceled",}
+
     def __init__(self, parent, controller, order):
         GuiFrame.__init__(self, parent, controller)
         self.order = order
-        self.logo = tk.PhotoImage(file="images/logo.ppm")
+        self.order_transaction_id = None
         self.order_status = tk.IntVar()
         self.order_status_id = 1
+        self.logo = tk.PhotoImage(file="images/logo.ppm")
 
         style = Style()
-        style.configure("mystyle.Treeview", highlightthickness=0, bd=3,
-                        font=("Helvetica", 14), rowheight=32)
-        style.configure("mystyle.Treeview.Heading", font=("Helvetica", 12, "bold"))
+        style.configure("style.Treeview", highlightthickness=0,  rowheight=32,
+                        font=("Helvetica", 14),bd=3)
+        style.configure("style.Treeview.Heading", font=("Helvetica", 12, "bold"))
 
         self.widgets = [{
             "name":"logo_label",
@@ -200,7 +203,7 @@ class OrderFrame(GuiFrame):
             "name":"orders_treeview",
             "class":Treeview,
             "init":{"master":"body_frame","show":"headings","padding":(2,2,2,2),
-                    "style":"mystyle.Treeview","height":13,
+                    "style":"style.Treeview","height":13,
                     "columns":("email","transaction_id","order_status","created"),},
             "grid":{"row":2,"sticky":"n","padx":(40,5),"pady":20,},
         },{
@@ -213,7 +216,7 @@ class OrderFrame(GuiFrame):
              "class":tk.Label,
              "init":{"master":"details_frame","background":"#fcfcfa",
                      "font":"Helvetica 12 bold","text":"Email:",},
-             "grid":{"row":0,"columnspan":2,"sticky":"nw",},
+             "grid":{"row":0,"columnspan":2,"sticky":"nw","pady":(3,0),},
          },{
             "name":"order_email_text",
             "class":tk.Text,
@@ -372,9 +375,10 @@ class OrderFrame(GuiFrame):
         self.orders_treeview.bind("<ButtonRelease-1>", self.show_order)
 
     def get_orders(self, order_status_id):
+        title_text = f"{self.ORDER_STATUSES[order_status_id]} Orders"
+        self.title_label.config(text=title_text)
         self.order_status_id = order_status_id
-        self.configure_radiobuttons()
-        self.print_order()
+        self.clear_order()
         self.orders_treeview.delete(*self.orders_treeview.get_children())
         results = self.order.get(params={"order_status_id": order_status_id})
         if type(results) is list:
@@ -390,10 +394,9 @@ class OrderFrame(GuiFrame):
             print(results)
 
     def show_order(self, event):
-        # print((event.x, event.y))
         row = self.orders_treeview.item(self.orders_treeview.selection()[0])
-        transaction_id = row['values'][1]
-        result = self.order.get(id=transaction_id)
+        self.order_transaction_id = row['values'][1]
+        result = self.order.get(id=self.order_transaction_id)
         if type(result) is dict:
             order_email = result['email']
             order_transaction_id = result['transaction_id']
@@ -422,7 +425,12 @@ class OrderFrame(GuiFrame):
                 sitename_text=sitename, pet_tracking_id_text=pet_tracking_id
             )
 
+    def clear_order(self):
+        self.order_transaction_id = None
+        self.print_order()
+
     def print_order(self, **details):
+        self.configure_radiobuttons()
         for child in self.details_frame.winfo_children():
             if child.winfo_class() == "Text":
                 child.delete(1.0, tk.END)
@@ -435,19 +443,26 @@ class OrderFrame(GuiFrame):
         self.deselect_radiobutton.select()
 
     def configure_radiobuttons(self):
-        if (self.order_status_id == 2):
-            processed_state = tk.DISABLED
-            shipped_state = tk.NORMAL
-            canceled_state = tk.NORMAL
+        if self.order_transaction_id is None:
+            self.processed_radiobutton.config(state=tk.DISABLED)
+            self.shipped_radiobutton.config(state=tk.DISABLED)
+            self.canceled_radiobutton.config(state=tk.DISABLED)
+            self.update_label.config(state=tk.DISABLED)
+            self.update_button.config(state=tk.DISABLED)
         else:
-            processed_state = tk.NORMAL if self.order_status_id == 1 else tk.DISABLED
-            shipped_state = tk.NORMAL if self.order_status_id == 1 else tk.DISABLED
-            canceled_state = tk.NORMAL if self.order_status_id == 1 else tk.DISABLED
-        self.processed_radiobutton.configure(state=processed_state)
-        self.shipped_radiobutton.configure(state=shipped_state)
-        self.canceled_radiobutton.configure(state=canceled_state)
-        self.update_label.configure(state=tk.DISABLED if self.order_status_id > 2 else tk.NORMAL)
-        self.update_button.configure(state=tk.DISABLED if self.order_status_id > 2 else tk.NORMAL)
+            if (self.order_status_id == 2):
+                processed_state = tk.DISABLED
+                shipped_state = tk.NORMAL
+                canceled_state = tk.NORMAL
+            else:
+                processed_state = tk.NORMAL if self.order_status_id == 1 else tk.DISABLED
+                shipped_state = tk.NORMAL if self.order_status_id == 1 else tk.DISABLED
+                canceled_state = tk.NORMAL if self.order_status_id == 1 else tk.DISABLED
+            self.processed_radiobutton.config(state=processed_state)
+            self.shipped_radiobutton.config(state=shipped_state)
+            self.canceled_radiobutton.config(state=canceled_state)
+            self.update_label.config(state=tk.DISABLED if self.order_status_id > 2 else tk.NORMAL)
+            self.update_button.config(state=tk.DISABLED if self.order_status_id > 2 else tk.NORMAL)
 
 
 if __name__ == "__main__":
