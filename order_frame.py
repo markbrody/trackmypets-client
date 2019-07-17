@@ -131,13 +131,13 @@ class OrderFrame(GuiFrame):
             "name":"details_hr_1_frame",
             "class":tk.Frame,
             "init":{"master":"details_frame","background":"#d0cbc1","height":1,},
-            "grid":{"row":6,"columnspan":2,"sticky":"ew","pady":(10,0),}
+            "grid":{"row":6,"columnspan":2,"sticky":"ew","pady":(10,10),}
         },{
             "name":"tag_description_label",
             "class":tk.Label,
             "init":{"master":"details_frame","background":"#fcfcfa",
                     "font":"Helvetica 12 bold","text":"Shape, Size, & Color:",},
-            "grid":{"row":7,"sticky":"nw","pady":(10,0),}
+            "grid":{"row":7,"sticky":"nw",}
         },{
             "name":"tag_description_text",
             "class":tk.Text,
@@ -149,7 +149,7 @@ class OrderFrame(GuiFrame):
             "class":tk.Label,
             "init":{"master":"details_frame","background":"#fcfcfa",
                     "font":"Helvetica 12 bold","text":"Pet Type:",},
-            "grid":{"row":7,"column":1,"sticky":"nw","pady":(10,0),}
+            "grid":{"row":7,"column":1,"sticky":"nw",}
         },{
             "name":"pet_type_text",
             "class":tk.Text,
@@ -196,13 +196,13 @@ class OrderFrame(GuiFrame):
             "name":"details_hr_2_frame",
             "class":tk.Frame,
             "init":{"master":"details_frame","background":"#d0cbc1","height":1,},
-            "grid":{"row":12,"columnspan":2,"sticky":"ew","pady":(10,0),}
+            "grid":{"row":12,"columnspan":2,"sticky":"ew","pady":(10,10),}
         },{
             "name":"update_label",
             "class":tk.Label,
             "init":{"master":"details_frame","background":"#fcfcfa",
                     "font":"Helvetica 12 bold","text":"Update Status To:",},
-            "grid":{"row":13,"columnspan":2,"sticky":"nw","pady":(10,0),}
+            "grid":{"row":13,"columnspan":2,"sticky":"nw",}
         },{
             "name":"update_frame",
             "class":tk.Frame,
