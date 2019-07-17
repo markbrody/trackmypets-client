@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 from auth import *
-from gui import *
 from order import *
+from gui import *
+from login_frame import *
+from order_frame import *
 
 class Application:
 
