@@ -4,15 +4,21 @@ import json
 import sqlite3
 import time
 import requests
+import os
+from os.path import join, dirname
+from dotenv import load_dotenv
 
 class Auth():
 
     DATABASE = "application.db"
-    API_URL = "http://trackmypets.com.localhost/oauth/token"
-    CLIENT_ID = 2
-    CLIENT_SECRET = "sqJidIgNOL7vmQaHO5MWGCwOcX25Zc1pBzZEm1KS"
+    API_ENDPOINT = "oauth/token"
 
     def __init__(self):
+        load_dotenv(join(dirname(__file__), '.env'))
+        api_host = os.environ.get("API_HOST") or "http://localhost/"
+        self.api_url = api_host + self.API_ENDPOINT
+        self.client_id = os.environ.get("CLIENT_ID")
+        self.client_secret = os.environ.get("CLIENT_SECRET")
         self.now = int(time.time())
         self.conn = sqlite3.connect(self.DATABASE)
         if self.conn is not None:
@@ -27,8 +33,8 @@ class Auth():
         password = credentials.pop("password", None)
         data = {
             "grant_type": "password",
-            "client_id": self.CLIENT_ID,
-            "client_secret": self.CLIENT_SECRET,
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
             "username": username,
             "password": password,
             "scope": ""
