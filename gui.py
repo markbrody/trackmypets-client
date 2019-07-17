@@ -14,9 +14,11 @@ class Gui(tk.Tk):
         self.container = tk.Frame(self, background="#fcfcfa")
         self.container.grid(row=0, column=0)
         self.frames = {}
+        self.top_frame = None
 
-    def raise_frame(self, frame_name):
-        self.frames[frame_name].tkraise()
+    def raise_frame(self, frame):
+        self.top_frame = frame
+        frame.tkraise()
 
 
 class GuiFrame(tk.Frame):

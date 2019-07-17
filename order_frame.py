@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
+import time
 from gui import *
 
 class OrderFrame(GuiFrame):
 
     ORDER_STATUSES = {1: "New", 2: "Processed", 3: "Shipped", 4: "Canceled",}
+    IDLE_TIME = 299
 
     def __init__(self, parent, controller, order):
         GuiFrame.__init__(self, parent, controller)
@@ -13,6 +15,7 @@ class OrderFrame(GuiFrame):
         self.order_status = tk.IntVar()
         self.order_status_id = 1
         self.logo = tk.PhotoImage(file="images/logo.ppm")
+        self.update_last_user_interaction()
 
         style = Style()
         style.configure("style.Treeview", highlightthickness=0,  rowheight=32,
@@ -264,6 +267,8 @@ class OrderFrame(GuiFrame):
         title_text = f"{self.ORDER_STATUSES[order_status_id]} Orders"
         self.title_label.config(text=title_text)
         self.order_status_id = order_status_id
+        if (self.order_status_id > 1):
+            self.update_last_user_interaction()
         self.clear_order()
         self.orders_treeview.delete(*self.orders_treeview.get_children())
         results = self.order.get(params={"order_status_id": order_status_id})
@@ -281,6 +286,7 @@ class OrderFrame(GuiFrame):
 
     def show_order(self, event):
         """ Sends a GET request for an order's details """
+        self.update_last_user_interaction()
         row = self.orders_treeview.item(self.orders_treeview.selection()[0])
         self.order_transaction_id = row['values'][1]
         result = self.order.get(id=self.order_transaction_id)
@@ -316,6 +322,7 @@ class OrderFrame(GuiFrame):
 
     def update_order(self):
         """ Sends a PUT request to the order API """
+        self.update_last_user_interaction()
         updated_status_id = self.order_status.get()
         if updated_status_id > 0:
             result = self.order.put(
@@ -335,13 +342,6 @@ class OrderFrame(GuiFrame):
         self.order_transaction_id = None
         self.print_order()
 
-    def process_result(self, result):
-        """ Verifies if user is still logged in and debugs """
-        if type(result) is dict and "message" in result:
-            if result['message'] == "Unauthenticated.":
-                self.controller.raise_frame("LoginFrame")
-        print(result)
-
     def print_order(self, **details):
         """ Replaces text values with highlighted order inromation """
         self.configure_radiobuttons()
@@ -355,6 +355,16 @@ class OrderFrame(GuiFrame):
             text = getattr(self, key)
             text.insert(tk.END, value)
         self.deselect_radiobutton.select()
+
+    def update_last_user_interaction(self):
+        self.last_user_interaction = int(time.time())
+
+    def process_result(self, result):
+        """ Verifies if user is still logged in and debugs """
+        if type(result) is dict and "message" in result:
+            if result['message'] == "Unauthenticated.":
+                self.controller.raise_frame(self.controller.frames['LoginFrame'])
+        print(result)
 
     def configure_radiobuttons(self):
         """ Called when rewriting the order details, an order must be selected

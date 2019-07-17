@@ -84,7 +84,7 @@ class LoginFrame(GuiFrame):
         password = self.password_entry.get()
         token = self.auth.request_new_token(username=username, password=password)
         if token:
-            self.controller.raise_frame("OrderFrame")
+            self.controller.raise_frame(self.controller.frames['OrderFrame'])
             self.controller.frames['OrderFrame'].order.token = token
             self.controller.frames['OrderFrame'].get_orders(1)
 
