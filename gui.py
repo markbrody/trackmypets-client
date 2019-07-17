@@ -14,10 +14,10 @@ class Gui(tk.Tk):
         self.container = tk.Frame(self, background="#fcfcfa")
         self.container.grid(row=0, column=0)
         self.frames = {}
-        #  self.after(10, print("slept 10"))
 
     def raise_frame(self, frame_name):
         self.frames[frame_name].tkraise()
+
 
 class GuiFrame(tk.Frame):
 

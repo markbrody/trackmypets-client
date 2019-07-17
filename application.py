@@ -12,8 +12,7 @@ class Application:
         self.gui = Gui()
         self.auth = Auth()
         self.order = Order(self.auth.token)
-    def foo(self):
-        print("hello")
+
 
 if __name__ == "__main__":
     application = Application()
