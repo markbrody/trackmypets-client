@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+
+from auth import *
+from gui import *
+from order import *
+
+class Application:
+
+    def __init__(self):
+        self.gui = Gui()
+        self.auth = Auth()
+        self.order = Order(self.auth.token)
+    def foo(self):
+        print("hello")
+
+if __name__ == "__main__":
+    application = Application()
+    token = application.order.token
+    gui = application.gui
+
+    gui.frames['LoginFrame'] = LoginFrame(
+        gui.container,
+        gui,
+        application.auth
+    )
+    gui.frames['LoginFrame'].grid(row=0, sticky="nsew")
+
+    gui.frames['OrderFrame'] = OrderFrame(
+        gui.container,
+        gui,
+        application.order
+    )
+    gui.frames['OrderFrame'].grid(row=0, sticky="nsew")
+
+    start_frame = "OrderFrame" if application.auth.token is not None else "LoginFrame"
+    gui.raise_frame(start_frame)
+    gui.mainloop()
+
