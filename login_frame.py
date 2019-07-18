@@ -7,7 +7,7 @@ class LoginFrame(GuiFrame):
     def __init__(self, parent, controller, auth):
         GuiFrame.__init__(self, parent, controller)
         self.auth = auth
-        self.logo = tk.PhotoImage(file="images/logo.ppm")
+        self.logo = tk.PhotoImage(file="logo.ppm")
         self.widgets = [{
             "name":"logo_label",
             "class":tk.Label,

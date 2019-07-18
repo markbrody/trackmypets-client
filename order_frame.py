@@ -15,7 +15,7 @@ class OrderFrame(GuiFrame):
         self.order_status = tk.IntVar()
         self.order_status_id = 1
         self.new_order_count = 0
-        self.logo = tk.PhotoImage(file="images/logo.ppm")
+        self.logo = tk.PhotoImage(file="logo.ppm")
         self.update_last_user_interaction()
 
         style = Style()
@@ -42,25 +42,25 @@ class OrderFrame(GuiFrame):
             "name":"new_button",
             "class":tk.Button,
             "init":{"master":"navigation_frame","width":7,"text":"New",
-                    "command":lambda: self.print_order_list(1)},
+                    "command":lambda: self.print_order_list(1),},
             "grid":{"row":0},
         },{
             "name":"processed_button",
             "class":tk.Button,
             "init":{"master":"navigation_frame","width":7,"text":"Processed",
-                    "command":lambda: self.print_order_list(2)},
+                    "command":lambda: self.print_order_list(2),},
             "grid":{"row":0,"column":1},
         },{
             "name":"shipped_button",
             "class":tk.Button,
             "init":{"master":"navigation_frame","width":7,"text":"Shipped",
-                    "command":lambda: self.print_order_list(3)},
+                    "command":lambda: self.print_order_list(3),},
             "grid":{"row":0,"column":2},
         },{
             "name":"canceled_button",
             "class":tk.Button,
             "init":{"master":"navigation_frame","width":7,"text":"Canceled",
-                    "command":lambda: self.print_order_list(4)},
+                    "command":lambda: self.print_order_list(4),},
             "grid":{"row":0,"column":3},
         },{
             "name":"border_frame",
