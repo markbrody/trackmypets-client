@@ -6,7 +6,7 @@ from gui import *
 class OrderFrame(GuiFrame):
 
     ORDER_STATUSES = {1: "New", 2: "Processed", 3: "Shipped", 4: "Canceled",}
-    IDLE_TIME = 299
+    IDLE_TIME = 599
 
     def __init__(self, parent, controller, order):
         GuiFrame.__init__(self, parent, controller)
@@ -14,6 +14,7 @@ class OrderFrame(GuiFrame):
         self.order_transaction_id = None
         self.order_status = tk.IntVar()
         self.order_status_id = 1
+        self.new_order_count = 0
         self.logo = tk.PhotoImage(file="images/logo.ppm")
         self.update_last_user_interaction()
 
@@ -41,25 +42,25 @@ class OrderFrame(GuiFrame):
             "name":"new_button",
             "class":tk.Button,
             "init":{"master":"navigation_frame","width":7,"text":"New",
-                    "command":lambda: self.get_orders(1)},
+                    "command":lambda: self.print_order_list(1)},
             "grid":{"row":0},
         },{
             "name":"processed_button",
             "class":tk.Button,
             "init":{"master":"navigation_frame","width":7,"text":"Processed",
-                    "command":lambda: self.get_orders(2)},
+                    "command":lambda: self.print_order_list(2)},
             "grid":{"row":0,"column":1},
         },{
             "name":"shipped_button",
             "class":tk.Button,
             "init":{"master":"navigation_frame","width":7,"text":"Shipped",
-                    "command":lambda: self.get_orders(3)},
+                    "command":lambda: self.print_order_list(3)},
             "grid":{"row":0,"column":2},
         },{
             "name":"canceled_button",
             "class":tk.Button,
             "init":{"master":"navigation_frame","width":7,"text":"Canceled",
-                    "command":lambda: self.get_orders(4)},
+                    "command":lambda: self.print_order_list(4)},
             "grid":{"row":0,"column":3},
         },{
             "name":"border_frame",
@@ -264,25 +265,11 @@ class OrderFrame(GuiFrame):
 
     def get_orders(self, order_status_id):
         """ Sends a GET request to the orders API for a list of orders """
-        title_text = f"{self.ORDER_STATUSES[order_status_id]} Orders"
-        self.title_label.config(text=title_text)
-        self.order_status_id = order_status_id
-        if (self.order_status_id > 1):
-            self.update_last_user_interaction()
-        self.clear_order()
-        self.orders_treeview.delete(*self.orders_treeview.get_children())
         results = self.order.get(params={"order_status_id": order_status_id})
-        if type(results) is list:
-            for result in results:
-                values = (
-                    result['email'],
-                    result['transaction_id'],
-                    result['order_status']['name'],
-                    result['created'],
-                )
-                self.orders_treeview.insert("", "end", text="text", values=values)
-        else:
+        if type(results) is not list:
             self.process_result(results)
+        else:
+            return results
 
     def show_order(self, event):
         """ Sends a GET request for an order's details """
@@ -309,7 +296,7 @@ class OrderFrame(GuiFrame):
             tag_line_2 = tag['line_2'] or ""
             sitename = "TrackMyPets.com"
             pet_tracking_id = f"ID: {tag['pet']['tracking_id']}"
-            self.print_order(
+            self.print_order_details(
                 order_email_text=order_email,
                 order_transaction_id_text=order_transaction_id, 
                 order_address_text=order_address,
@@ -333,16 +320,36 @@ class OrderFrame(GuiFrame):
                 },
             )
             if "transaction_id" in result:
-                self.get_orders(self.order_status_id)
+                self.print_order_list(self.order_status_id)
             else:
                 self.process_result(result)
 
-    def clear_order(self):
+    def print_order_list(self, order_status_id):
+        results = self.get_orders(order_status_id)
+        title_text = f"{self.ORDER_STATUSES[order_status_id]} Orders"
+        self.order_status_id = order_status_id
+        self.title_label.config(text=title_text)
+        self.clear_order_details()
+        self.orders_treeview.delete(*self.orders_treeview.get_children())
+        if self.order_status_id > 1:
+            self.update_last_user_interaction()
+        else:
+            self.new_order_count = len(results)
+        for result in results:
+            values = (
+                result['email'],
+                result['transaction_id'],
+                result['order_status']['name'],
+                result['created'],
+            )
+            self.orders_treeview.insert("", "end", text="text", values=values)
+
+    def clear_order_details(self):
         """ Sets the current transaction_id to None and erases text values """
         self.order_transaction_id = None
-        self.print_order()
+        self.print_order_details()
 
-    def print_order(self, **details):
+    def print_order_details(self, **details):
         """ Replaces text values with highlighted order inromation """
         self.configure_radiobuttons()
         for child in self.details_frame.winfo_children():
