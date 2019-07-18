@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import time
 import tkinter as tk
 from tkinter import font as tkfont
 from tkinter import messagebox as tkmessagebox
@@ -15,9 +16,22 @@ class Gui(tk.Tk):
         self.container.grid(row=0, column=0)
         self.frames = {}
         self.top_frame = None
+        self.button_is_fixed = False
+
+    def button_fix(self):
+        window_dimensions = self.winfo_geometry()
+        print(window_dimensions)
+        delimiter = window_dimensions.find("+")
+        if delimiter >= 0:
+            window_dimensions = window_dimensions[0:delimiter]
+        geometry = window_dimensions.split("x")
+        w = int(geometry[0]) + 1
+        h = int(geometry[1]) + 1
+        self.geometry(f"{w}x{h}")
 
     def raise_frame(self, frame):
         self.top_frame = frame
+        self.button_is_fixed = False
         frame.tkraise()
 
 

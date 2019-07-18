@@ -3,13 +3,14 @@
 import json
 import requests
 import os
-from os.path import join, dirname
+import sys
 from dotenv import load_dotenv
 
 class RestClient:
 
     def __init__(self, token=None):
-        load_dotenv(join(dirname(__file__), '.env'))
+        sys.path.append(os.getcwd())
+        load_dotenv(".env")
         self.api_host = os.environ.get("API_HOST") or "http://localhost/"
         self.token = token
         try:

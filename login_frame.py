@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
+import sys
+import os
 from gui import *
 
 class LoginFrame(GuiFrame):
 
     def __init__(self, parent, controller, auth):
+        sys.path.append(os.getcwd())
         GuiFrame.__init__(self, parent, controller)
         self.auth = auth
         self.logo = tk.PhotoImage(file="logo.ppm")
@@ -71,7 +74,7 @@ class LoginFrame(GuiFrame):
         },{
             "name":"login_button",
             "class":tk.Button,
-            "init":{"master":"form_frame","text":"Login",
+            "init":{"master":"form_frame","text":"Login","highlightbackground":"#fcfcfa",
                     "command":lambda:self.login(),},
             "grid":{"row":4,"sticky":"e","pady":(10,10)},
         },]
@@ -86,5 +89,5 @@ class LoginFrame(GuiFrame):
         if token:
             self.controller.raise_frame(self.controller.frames['OrderFrame'])
             self.controller.frames['OrderFrame'].order.token = token
-            self.controller.frames['OrderFrame'].get_orders(1)
+            self.controller.frames['OrderFrame'].print_order_list(1)
 

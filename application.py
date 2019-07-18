@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import time
+import sys
 from auth import *
 from order import *
 from gui import *
@@ -8,6 +9,8 @@ from login_frame import *
 from order_frame import *
 
 class Application:
+
+    POLL_INTERVAL = 300
 
     def __init__(self):
         self.gui = Gui()
@@ -34,16 +37,29 @@ class Application:
             our own loop. This way we can also poll for new orders when the user
             has been idle. """
         while True:
-            now = int(time.time())
-            if now % 300 == 0 and gui.top_frame == order_frame:
-                if now - order_frame.last_user_interaction > order_frame.IDLE_TIME:
-                    new_orders = order_frame.get_orders(1)
-                    if len(new_orders) > order_frame.new_order_count:
-                        order_frame.print_order_list(1)
-                        self.gui.bell()
-                time.sleep(1)
-            self.gui.update_idletasks()
-            self.gui.update()
+            try:
+               self.gui.update_idletasks()
+               self.gui.update()
+            except:
+                print("Could not update gui")
+                sys.exit(1)
+            else:
+                now = int(time.time())
+                if (now % self.POLL_INTERVAL == 0 and
+                        self.gui.top_frame == order_frame):
+                    self.poller(now)
+                if not self.gui.button_is_fixed:
+                    self.gui.button_is_fixed = True
+                    self.gui.button_fix()
+
+    def poller(self, now):
+        order_frame = self.gui.frames['OrderFrame']
+        if now - order_frame.last_user_interaction > order_frame.IDLE_TIME:
+            new_orders = order_frame.get_orders(1)
+            if len(new_orders) > order_frame.new_order_count:
+                order_frame.print_order_list(1)
+                self.gui.bell()
+        time.sleep(1)
 
 
 def run_application():

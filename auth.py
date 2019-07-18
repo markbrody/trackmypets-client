@@ -5,7 +5,7 @@ import sqlite3
 import time
 import requests
 import os
-from os.path import join, dirname
+import sys
 from dotenv import load_dotenv
 
 class Auth():
@@ -14,7 +14,8 @@ class Auth():
     API_ENDPOINT = "oauth/token"
 
     def __init__(self):
-        load_dotenv(join(dirname(__file__), '.env'))
+        sys.path.append(os.getcwd())
+        load_dotenv(".env")
         api_host = os.environ.get("API_HOST") or "http://localhost/"
         self.api_url = api_host + self.API_ENDPOINT
         self.client_id = os.environ.get("CLIENT_ID")

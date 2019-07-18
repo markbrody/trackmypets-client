@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
 import time
+import sys
+import os
+from os.path import join, dirname
 from gui import *
 
 class OrderFrame(GuiFrame):
@@ -9,6 +12,7 @@ class OrderFrame(GuiFrame):
     IDLE_TIME = 599
 
     def __init__(self, parent, controller, order):
+        sys.path.append(os.getcwd())
         GuiFrame.__init__(self, parent, controller)
         self.order = order
         self.order_transaction_id = None
@@ -245,12 +249,13 @@ class OrderFrame(GuiFrame):
             "class":tk.Button,
             "init":{"master":"update_frame","background":"#fcfcfa",
                     "text":"Update","command":lambda: self.update_order(),
-                    "state":tk.DISABLED,},
+                    "state":tk.DISABLED,"highlightbackground":"#fcfcfa",},
             "grid":{"row":1,"columnspan":3,"sticky":"ew","pady":(20,0),},
         },]
 
         self.draw_widgets()
         self.logo_label.image = self.logo
+        self.new_button.configure(text="New")
 
         self.orders_treeview.heading("email", text="Email")
         self.orders_treeview.column("email", anchor="w", width=180)
@@ -268,12 +273,14 @@ class OrderFrame(GuiFrame):
         results = self.order.get(params={"order_status_id": order_status_id})
         if type(results) is not list:
             self.process_result(results)
+            return []
         else:
             return results
 
     def show_order(self, event):
         """ Sends a GET request for an order's details """
         self.update_last_user_interaction()
+        print(self.orders_treeview.selection()[0])
         row = self.orders_treeview.item(self.orders_treeview.selection()[0])
         self.order_transaction_id = row['values'][1]
         result = self.order.get(id=self.order_transaction_id)
@@ -334,15 +341,19 @@ class OrderFrame(GuiFrame):
         if self.order_status_id > 1:
             self.update_last_user_interaction()
         else:
-            self.new_order_count = len(results)
-        for result in results:
-            values = (
-                result['email'],
-                result['transaction_id'],
-                result['order_status']['name'],
-                result['created'],
-            )
-            self.orders_treeview.insert("", "end", text="text", values=values)
+            if results is None:
+                self.new_order_count = 0
+            else:
+                self.new_order_count = len(results)
+        if results is not None:
+            for result in results:
+                values = (
+                    result['email'],
+                    result['transaction_id'],
+                    result['order_status']['name'],
+                    result['created'],
+                )
+                self.orders_treeview.insert("", "end", text="text", values=values)
 
     def clear_order_details(self):
         """ Sets the current transaction_id to None and erases text values """
