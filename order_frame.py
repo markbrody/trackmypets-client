@@ -93,12 +93,12 @@ class OrderFrame(GuiFrame):
             "init":{"master":"body_frame","show":"headings","padding":(2,2,2,2),
                     "style":"style.Treeview","height":13,
                     "columns":("email","transaction_id","order_status","created"),},
-            "grid":{"row":2,"sticky":"n","padx":(40,5),"pady":20,},
+            "grid":{"row":2,"column":0,"sticky":"n","padx":(40,5),"pady":20,},
         },{
             "name":"details_frame",
             "class":tk.Frame,
             "init":{"master":"body_frame","background":"#fcfcfa",},
-            "grid":{"row":2,"column":1,"sticky":"n","padx":(5, 40),"pady":20,},
+            "grid":{"row":2,"column":1,"sticky":"n","padx":(5,40),"pady":20,},
         },{
             "name":"order_email_label",
              "class":tk.Label,
@@ -280,7 +280,6 @@ class OrderFrame(GuiFrame):
     def show_order(self, event):
         """ Sends a GET request for an order's details """
         self.update_last_user_interaction()
-        print(self.orders_treeview.selection()[0])
         row = self.orders_treeview.item(self.orders_treeview.selection()[0])
         self.order_transaction_id = row['values'][1]
         result = self.order.get(id=self.order_transaction_id)

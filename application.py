@@ -59,6 +59,8 @@ class Application:
             if len(new_orders) > order_frame.new_order_count:
                 order_frame.print_order_list(1)
                 self.gui.bell()
+            else:
+                order_frame.print_order_list(order_frame.order_status_id)
         time.sleep(1)
 
 

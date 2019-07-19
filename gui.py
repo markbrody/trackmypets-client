@@ -20,7 +20,6 @@ class Gui(tk.Tk):
 
     def button_fix(self):
         window_dimensions = self.winfo_geometry()
-        print(window_dimensions)
         delimiter = window_dimensions.find("+")
         if delimiter >= 0:
             window_dimensions = window_dimensions[0:delimiter]
