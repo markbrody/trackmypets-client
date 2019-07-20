@@ -3,6 +3,7 @@
 import time
 import sys
 from auth import *
+from check_updates import *
 from order import *
 from gui import *
 from login_frame import *
@@ -13,9 +14,10 @@ class Application:
     POLL_INTERVAL = 300
 
     def __init__(self):
-        self.gui = Gui()
         self.auth = Auth()
+        self.check_updates = CheckUpdates(self.auth.token)
         self.order = Order(self.auth.token)
+        self.gui = Gui()
         self.__build()
 
     def __build(self):
