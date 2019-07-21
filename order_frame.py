@@ -15,7 +15,7 @@ class OrderFrame(GuiFrame):
         sys.path.append(os.getcwd())
         GuiFrame.__init__(self, parent, controller)
         self.order = order
-        self.order_transaction_id = None
+        self.order_id = None
         self.order_status = tk.IntVar()
         self.order_status_id = 1
         self.new_order_count = 0
@@ -92,7 +92,7 @@ class OrderFrame(GuiFrame):
             "class":Treeview,
             "init":{"master":"body_frame","show":"headings","padding":(2,2,2,2),
                     "style":"style.Treeview","height":13,
-                    "columns":("email","transaction_id","order_status","created"),},
+                    "columns":("id","email","transaction_id","order_status","created"),},
             "grid":{"row":2,"column":0,"sticky":"n","padx":(40,5),"pady":20,},
         },{
             "name":"details_frame",
@@ -257,6 +257,8 @@ class OrderFrame(GuiFrame):
         self.logo_label.image = self.logo
         self.new_button.configure(text="New")
 
+        self.orders_treeview.heading("id", text="ID")
+        self.orders_treeview.column("id", anchor="w", minwidth=0, width=0)
         self.orders_treeview.heading("email", text="Email")
         self.orders_treeview.column("email", anchor="w", width=180)
         self.orders_treeview.heading("transaction_id", text="Transaction ID")
@@ -267,6 +269,13 @@ class OrderFrame(GuiFrame):
         self.orders_treeview.column("created", anchor="w", width=200)
         self.orders_treeview.grid(row=2, sticky="n", padx=(40, 5), pady=20)
         self.orders_treeview.bind("<ButtonRelease-1>", self.show_order)
+
+        excludes = ["id"]
+        display = []
+        for column in self.orders_treeview["columns"]:
+            if not f"{column}" in excludes:
+                display.append(column)
+        self.orders_treeview["display"] = display
 
     def get_orders(self, order_status_id):
         """ Sends a GET request to the orders API for a list of orders """
@@ -281,9 +290,9 @@ class OrderFrame(GuiFrame):
         """ Sends a GET request for an order's details """
         self.update_last_user_interaction()
         row = self.orders_treeview.item(self.orders_treeview.selection()[0])
-        self.order_transaction_id = row['values'][1]
-        result = self.order.get(id=self.order_transaction_id)
-        if "transaction_id" in result:
+        self.order_id = row['values'][0]
+        result = self.order.get(id=self.order_id)
+        if "id" in result:
             order_email = result['email']
             order_transaction_id = result['transaction_id']
             order_address = "\n".join((
@@ -319,13 +328,13 @@ class OrderFrame(GuiFrame):
         updated_status_id = self.order_status.get()
         if updated_status_id > 0:
             result = self.order.put(
-                id=self.order_transaction_id,
+                id=self.order_id,
                 data={
                     "order_status_id": updated_status_id,
                     "shipping_id": "N/A",
                 },
             )
-            if "transaction_id" in result:
+            if "id" in result:
                 self.print_order_list(self.order_status_id)
             else:
                 self.process_result(result)
@@ -347,6 +356,7 @@ class OrderFrame(GuiFrame):
         if results is not None:
             for result in results:
                 values = (
+                    result['id'],
                     result['email'],
                     result['transaction_id'],
                     result['order_status']['name'],
@@ -356,7 +366,7 @@ class OrderFrame(GuiFrame):
 
     def clear_order_details(self):
         """ Sets the current transaction_id to None and erases text values """
-        self.order_transaction_id = None
+        self.order_id = None
         self.print_order_details()
 
     def print_order_details(self, **details):
@@ -387,7 +397,7 @@ class OrderFrame(GuiFrame):
         """ Called when rewriting the order details, an order must be selected
             in order to enable the form.  Buttons are enable/disabled based on
             the order status """
-        if self.order_transaction_id is None:
+        if self.order_id is None:
             self.processed_radiobutton.config(state=tk.DISABLED)
             self.shipped_radiobutton.config(state=tk.DISABLED)
             self.canceled_radiobutton.config(state=tk.DISABLED)

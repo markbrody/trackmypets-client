@@ -8,7 +8,7 @@ Usage:
 from setuptools import setup
 
 APP = ["application.py"]
-DATA_FILES = ["logo.ppm", ".env", ]
+DATA_FILES = [".env", "logo.ppm", ]
 OPTIONS = {"iconfile": "appicon.icns",}
 
 setup(

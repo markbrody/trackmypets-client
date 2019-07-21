@@ -5,6 +5,7 @@ import requests
 import os
 import sys
 from dotenv import load_dotenv
+from alert import *
 
 class RestClient:
 
@@ -44,10 +45,16 @@ class RestClient:
                 "Accept": "application/json",
                 "Authorization": f"Bearer {self.token}",
             }
-            api_url = self.api_url if id is None else self.api_url + id
-            response = requests.request(method, api_url, headers=headers,
-                                        params=params, data=data)
-            return response.text
+            api_url = self.api_url if id is None else self.api_url + str(id)
+            try:
+                response = requests.request(
+                    method, api_url, headers=headers, params=params, data=data,
+                    timeout=(5, 30)
+                )
+            except:
+                alert = Alert("Request failed.")
+            else:
+                return response.text
 
 if __name__ == "__main__":
     rest_client = RestClient("foo")

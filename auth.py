@@ -7,21 +7,25 @@ import requests
 import os
 import sys
 from dotenv import load_dotenv
+from alert import *
 
 class Auth():
 
-    DATABASE = "application.db"
+    DATABASE = ".trackmypets.db"
     API_ENDPOINT = "oauth/token"
 
     def __init__(self):
         sys.path.append(os.getcwd())
         load_dotenv(".env")
-        api_host = os.environ.get("API_HOST") or "http://localhost/"
-        self.api_url = api_host + self.API_ENDPOINT
+        self.api_host = os.environ.get("API_HOST") or "http://localhost/"
+        self.__connect()
+        self.api_url = self.api_host + self.API_ENDPOINT
         self.client_id = os.environ.get("CLIENT_ID")
         self.client_secret = os.environ.get("CLIENT_SECRET")
         self.now = int(time.time())
-        self.conn = sqlite3.connect(self.DATABASE)
+        self.conn = sqlite3.connect(
+            "/".join([os.environ.get("HOME"), self.DATABASE])
+        )
         if self.conn is not None:
             self.cursor = self.conn.cursor()
             self.__create_auth_db()
@@ -38,12 +42,25 @@ class Auth():
             "client_secret": self.client_secret,
             "username": username,
             "password": password,
-            "scope": ""
+            "scope": "*"
         }
         response = requests.request("POST", self.api_url, data=data)
         auth = json.loads(response.text)
         return self.__save_auth_db(auth) if "token_type" in auth else False
         
+    def __connect(self):
+        try:
+            _ = requests.get(self.api_host, timeout=(5, 10))
+        except requests.ConnectionError:
+            alert = Alert("No internet connection")
+            sys.exit(1)
+        except requests.exceptions.RequestException:
+            alert = Alert("Request timed out")
+            sys.exit(1)
+        except:
+            alert = Alert("Cannot connect to api host")
+            sys.exit(1)
+
     def __create_auth_db(self):
         sql = """
             CREATE TABLE IF NOT EXISTS auth (
