@@ -77,9 +77,12 @@ class Auth():
         sql = "INSERT INTO auth (expiration, token) VALUES (?, ?)"
         expiration = self.now + auth['expires_in']
         token = auth['access_token']
-        with self.conn:
-            self.cursor.execute("DELETE FROM auth")
-            self.cursor.execute(sql, (expiration, token, ))
+        # with self.conn:
+        #     self.cursor.execute("DELETE FROM auth")
+        #     self.cursor.execute(sql, (expiration, token, ))
+        self.cursor.execute("DELETE FROM auth")
+        self.cursor.execute(sql, (expiration, token, ))
+        self.conn.commit()
         self.__set_token(auth['access_token'])
         return auth['access_token']
 
