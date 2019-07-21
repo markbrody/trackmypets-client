@@ -6,7 +6,7 @@ import os
 from os.path import join, dirname
 from gui import *
 
-class OrderFrame(GuiFrame):
+class UserFrame(GuiFrame):
 
     ORDER_STATUSES = {1: "New", 2: "Processed", 3: "Shipped", 4: "Canceled",}
     IDLE_TIME = 119
@@ -43,30 +43,6 @@ class OrderFrame(GuiFrame):
             "init":{"master":None,"background":"#ffffff"},
             "grid":{"row":0,"column":2,"sticky":"e","padx":(0,40)},
         },{
-            "name":"new_button",
-            "class":tk.Button,
-            "init":{"master":"filters_frame","width":7,"text":"New",
-                    "command":lambda: self.print_order_list(1),},
-            "grid":{"row":0},
-        },{
-            "name":"processed_button",
-            "class":tk.Button,
-            "init":{"master":"filters_frame","width":7,"text":"Processed",
-                    "command":lambda: self.print_order_list(2),},
-            "grid":{"row":0,"column":1},
-        },{
-            "name":"shipped_button",
-            "class":tk.Button,
-            "init":{"master":"filters_frame","width":7,"text":"Shipped",
-                    "command":lambda: self.print_order_list(3),},
-            "grid":{"row":0,"column":2},
-        },{
-            "name":"canceled_button",
-            "class":tk.Button,
-            "init":{"master":"filters_frame","width":7,"text":"Canceled",
-                    "command":lambda: self.print_order_list(4),},
-            "grid":{"row":0,"column":3},
-        },{
             "name":"header_border_frame",
             "class":tk.Frame,
             "init":{"master":None,"background":"#d0cbc1","height":1},
@@ -79,7 +55,7 @@ class OrderFrame(GuiFrame):
         },{
             "name":"title_label",
             "class":tk.Label,
-            "init":{"master":"body_frame","text":"Orders","background":"#fcfcfa",
+            "init":{"master":"body_frame","text":"Users","background":"#fcfcfa",
                     "anchor":"w","font":controller.title_font},
             "grid":{"row":0,"columnspan":2,"sticky":"new","padx":40,"pady":10},
         },{
@@ -255,7 +231,6 @@ class OrderFrame(GuiFrame):
 
         self.draw_widgets()
         self.logo_label.image = self.logo
-        #self.new_button.configure(text="New")
 
         self.orders_treeview.heading("id", text="ID")
         self.orders_treeview.column("id", anchor="w", minwidth=0, width=0)
@@ -341,9 +316,9 @@ class OrderFrame(GuiFrame):
 
     def print_order_list(self, order_status_id):
         results = self.get_orders(order_status_id)
-        title_text = f"{self.ORDER_STATUSES[order_status_id]} Orders"
+        # title_text = f"{self.ORDER_STATUSES[order_status_id]} Orders"
         self.order_status_id = order_status_id
-        self.title_label.config(text=title_text)
+        # self.title_label.config(text=title_text)
         self.clear_order_details()
         self.orders_treeview.delete(*self.orders_treeview.get_children())
         if self.order_status_id > 1:

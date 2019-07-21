@@ -8,10 +8,12 @@ from order import *
 from gui import *
 from login_frame import *
 from order_frame import *
+from navigation_frame import *
+from user_frame import *
 
 class Application:
 
-    POLL_INTERVAL = 300
+    POLL_INTERVAL = 60
 
     def __init__(self):
         self.auth = Auth()
@@ -19,17 +21,24 @@ class Application:
         self.order = Order(self.auth.token)
         self.gui = Gui()
         self.__build()
+        self.gui.navigation = NavigationFrame(self.gui.container, self.gui).grid(row=1, sticky="ew")
 
     def __build(self):
         self.gui.configure(background="#fcfcfa")
         order_frame = OrderFrame(self.gui.container, self.gui, self.order)
         login_frame = LoginFrame(self.gui.container, self.gui, self.auth)
-        self.gui.frames = {"OrderFrame": order_frame, "LoginFrame": login_frame}
+        user_frame = UserFrame(self.gui.container, self.gui, self.order)
+        self.gui.frames = {
+            "OrderFrame": order_frame,
+            "LoginFrame": login_frame,
+            "UserFrame": user_frame,
+        }
         for frame in self.gui.frames.values():
             frame.grid(row=0, sticky="nsew")
 
     def run(self):
         order_frame = self.gui.frames['OrderFrame']
+        order_frame = self.gui.frames['UserFrame']
         if self.auth.token is not None:
             self.gui.raise_frame(order_frame)
             order_frame.print_order_list(order_frame.order_status_id)
