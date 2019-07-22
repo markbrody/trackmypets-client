@@ -4,12 +4,11 @@ import time
 import sys
 from auth import *
 from check_updates import *
-from order import *
+from model import *
 from gui import *
 from login_frame import *
-from order_frame import *
-from navigation_frame import *
-from user_frame import *
+from orders_frame import *
+from users_frame import *
 
 class Application:
 
@@ -19,29 +18,26 @@ class Application:
         self.auth = Auth()
         self.check_updates = CheckUpdates(self.auth.token)
         self.order = Order(self.auth.token)
+        self.user = User(self.auth.token)
         self.gui = Gui()
         self.__build()
-        self.gui.navigation = NavigationFrame(self.gui.container, self.gui).grid(row=1, sticky="ew")
 
     def __build(self):
         self.gui.configure(background="#fcfcfa")
-        order_frame = OrderFrame(self.gui.container, self.gui, self.order)
-        login_frame = LoginFrame(self.gui.container, self.gui, self.auth)
-        user_frame = UserFrame(self.gui.container, self.gui, self.order)
         self.gui.frames = {
-            "OrderFrame": order_frame,
-            "LoginFrame": login_frame,
-            "UserFrame": user_frame,
+            "OrdersFrame": OrdersFrame(self.gui.container, self.gui, self.order),
+            "UsersFrame": UsersFrame(self.gui.container, self.gui, self.user),
+            "LoginFrame": LoginFrame(self.gui.container, self.gui, self.auth),
         }
         for frame in self.gui.frames.values():
             frame.grid(row=0, sticky="nsew")
 
     def run(self):
-        order_frame = self.gui.frames['OrderFrame']
-        order_frame = self.gui.frames['UserFrame']
+        orders_frame = self.gui.frames['OrdersFrame']
         if self.auth.token is not None:
-            self.gui.raise_frame(order_frame)
-            order_frame.print_order_list(order_frame.order_status_id)
+            self.gui.frames['OrdersFrame'].print_order_list(orders_frame.order_status_id)
+            self.gui.frames['UsersFrame'].print_user_list()
+            self.gui.raise_frame(orders_frame)
 
         # self.gui.mainloop()
         """ Instead of running mainloop(), we'll simulate it by updating gui in
@@ -57,21 +53,21 @@ class Application:
             else:
                 now = int(time.time())
                 if (now % self.POLL_INTERVAL == 0 and
-                        self.gui.top_frame == order_frame):
+                        self.gui.top_frame == orders_frame):
                     self.poller(now)
                 if not self.gui.button_is_fixed:
                     self.gui.button_is_fixed = True
                     self.gui.button_fix()
 
     def poller(self, now):
-        order_frame = self.gui.frames['OrderFrame']
-        if now - order_frame.last_user_interaction > order_frame.IDLE_TIME:
-            new_orders = order_frame.get_orders(1)
-            if len(new_orders) > order_frame.new_order_count:
-                order_frame.print_order_list(1)
+        orders_frame = self.gui.frames['OrdersFrame']
+        if now - orders_frame.last_user_interaction > orders_frame.IDLE_TIME:
+            new_orders = orders_frame.get_orders(1)
+            if len(new_orders) > orders_frame.new_order_count:
+                orders_frame.print_order_list(1)
                 self.gui.bell()
             else:
-                order_frame.print_order_list(order_frame.order_status_id)
+                orders_frame.print_order_list(orders_frame.order_status_id)
         time.sleep(1)
 
 

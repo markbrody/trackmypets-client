@@ -3,10 +3,12 @@
 import time
 import sys
 import os
-from os.path import join, dirname
+# from os.path import join, dirname
+from alert import *
+from frames import *
 from gui import *
 
-class UserFrame(GuiFrame):
+class OrdersFrame(GuiFrame):
 
     ORDER_STATUSES = {1: "New", 2: "Processed", 3: "Shipped", 4: "Canceled",}
     IDLE_TIME = 119
@@ -19,56 +21,83 @@ class UserFrame(GuiFrame):
         self.order_status = tk.IntVar()
         self.order_status_id = 1
         self.new_order_count = 0
-        self.logo = tk.PhotoImage(file="logo.ppm")
         self.update_last_user_interaction()
 
-        style = Style()
-        style.configure("style.Treeview", highlightthickness=0,  rowheight=32,
-                        font=("Helvetica", 14),bd=3)
-        style.configure("style.Treeview.Heading", font=("Helvetica", 12, "bold"))
+        # style = Style()
+        # style.configure("style.Treeview", highlightthickness=0,  rowheight=32,
+        #                 font=("Helvetica", 14),bd=3)
+        # style.configure("style.Treeview.Heading", font=("Helvetica", 12, "bold"))
 
         self.widgets = [{
-            "name":"logo_label",
-            "class":tk.Label,
-            "init":{"master":None,"image":self.logo,"background":"#ffffff"},
-            "grid":{"row":0,"column":0,"sticky":"w","padx":(40,0),"pady":20},
-        },{
-            "name":"spacer_frame",
-            "class":tk.Frame,
-            "init":{"master":None,"width":200,"height":30,"background":"#ffffff"},
-            "grid":{"row":0,"column":1,"sticky":"w"},
-        },{
-            "name":"filters_frame",
-            "class":tk.Frame,
-            "init":{"master":None,"background":"#ffffff"},
-            "grid":{"row":0,"column":2,"sticky":"e","padx":(0,40)},
-        },{
-            "name":"header_border_frame",
-            "class":tk.Frame,
-            "init":{"master":None,"background":"#d0cbc1","height":1},
-            "grid":{"row":1,"column":0,"columnspan":3,"sticky":"ew"},
+            "name":"header_frame",
+            "class":HeaderFrame, 
+            "init":{"master":None,"controller":self.controller,},
+            "grid":{"row":0,"sticky":"ew",}
         },{
             "name":"body_frame",
             "class":tk.Frame,
             "init":{"master":None,"background":"#fcfcfa"},
-            "grid":{"row":2,"columnspan":3,"sticky":"nsew"},
+            "grid":{"row":1,"sticky":"ew"},
+        },{
+            "name":"title_frame",
+            "class":tk.Frame,
+            "init":{"master":"body_frame","background":"#fcfcfa"},
+            "grid":{"row":0,"columnspan":2,"sticky":"new","padx":40,},
         },{
             "name":"title_label",
             "class":tk.Label,
-            "init":{"master":"body_frame","text":"Users","background":"#fcfcfa",
+            "init":{"master":"title_frame","text":"Orders","background":"#fcfcfa",
                     "anchor":"w","font":controller.title_font},
-            "grid":{"row":0,"columnspan":2,"sticky":"new","padx":40,"pady":10},
+            "grid":{"row":0,"sticky":"w","pady":10},
+        },{
+            "name":"filters_frame",
+            "class":tk.Frame,
+            "init":{"master":"title_frame","background":"#fcfcfa",},
+            "grid":{"row":0,"column":2,"sticky":"e",},
+        },{
+            "name":"new_button",
+            "class":tk.Button,
+            "init":{"master":"filters_frame","width":7,"text":"New",
+                    "background":"#fcfcfa","command":lambda: self.print_order_list(1),},
+            "grid":{"row":0,"column":0,"sticky":"e","padx":(20,0),},
+        },{
+            "name":"processed_button",
+            "class":tk.Button,
+            "init":{"master":"filters_frame","width":7,"text":"Processed",
+                    "background":"#fcfcfa","command":lambda: self.print_order_list(2),},
+            "grid":{"row":0,"column":1,"sticky":"e","padx":(20,0),},
+        },{
+            "name":"shipped_button",
+            "class":tk.Button,
+            "init":{"master":"filters_frame","width":7,"text":"Shipped",
+                    "background":"#fcfcfa","command":lambda: self.print_order_list(3),},
+            "grid":{"row":0,"column":2,"sticky":"e","padx":(20,0),},
+        },{
+            "name":"canceled_button",
+            "class":tk.Button,
+            "init":{"master":"filters_frame","width":7,"text":"Canceled",
+                    "background":"#fcfcfa","command":lambda: self.print_order_list(4),},
+            "grid":{"row":0,"column":3,"sticky":"e","padx":(20,0),},
         },{
             "name":"hr_frame",
             "class":tk.Frame,
             "init":{"master":"body_frame","width":900,"background":"#8ab365","height":4},
             "grid":{"row":1,"columnspan":2,"sticky":"new","padx":40},
         },{
-            "name":"orders_treeview",
-            "class":Treeview,
-            "init":{"master":"body_frame","show":"headings","padding":(2,2,2,2),
-                    "style":"style.Treeview","height":13,
-                    "columns":("id","email","transaction_id","order_status","created"),},
+            "name":"treeview_frame",
+            "class":TreeviewFrame,
+            "init":{
+                "master": "body_frame",
+                "controller": self.controller,
+                "belongs_to": self,
+                "columns":{
+                    "id": {"text": "ID", "width": 0, "exclude": True, },
+                    "email": {"text": "Email", "width": 180, },
+                    "transaction_id": {"text": "Transaction ID", "width": 280, },
+                    "order_status_id": {"text": "Status", "width": 80, },
+                    "created": {"text": "Time", "width": 200, },
+                },
+            },
             "grid":{"row":2,"column":0,"sticky":"n","padx":(40,5),"pady":20,},
         },{
             "name":"details_frame",
@@ -227,75 +256,62 @@ class UserFrame(GuiFrame):
                     "text":"Update","command":lambda: self.update_order(),
                     "state":tk.DISABLED,"highlightbackground":"#fcfcfa",},
             "grid":{"row":1,"columnspan":3,"sticky":"ew","pady":(20,0),},
+        },{
+            "name":"navigation_frame",
+            "class":NavigationFrame, 
+            "init":{"master":None,"controller":self.controller,},
+            "grid":{"row":2,"sticky":"nsew",}
         },]
 
         self.draw_widgets()
-        self.logo_label.image = self.logo
-
-        self.orders_treeview.heading("id", text="ID")
-        self.orders_treeview.column("id", anchor="w", minwidth=0, width=0)
-        self.orders_treeview.heading("email", text="Email")
-        self.orders_treeview.column("email", anchor="w", width=180)
-        self.orders_treeview.heading("transaction_id", text="Transaction ID")
-        self.orders_treeview.column("transaction_id", anchor="w", width=280)
-        self.orders_treeview.heading("order_status", text="Status")
-        self.orders_treeview.column("order_status", anchor="w", width=80)
-        self.orders_treeview.heading("created", text="Time")
-        self.orders_treeview.column("created", anchor="w", width=200)
-        self.orders_treeview.grid(row=2, sticky="n", padx=(40, 5), pady=20)
-        self.orders_treeview.bind("<ButtonRelease-1>", self.show_order)
-
-        excludes = ["id"]
-        display = []
-        for column in self.orders_treeview["columns"]:
-            if not f"{column}" in excludes:
-                display.append(column)
-        self.orders_treeview["display"] = display
 
     def get_orders(self, order_status_id):
         """ Sends a GET request to the orders API for a list of orders """
         results = self.order.get(params={"order_status_id": order_status_id})
-        if type(results) is not list:
-            self.process_result(results)
-            return []
+        if results is not None:
+            if "message" in results:
+                self.process_result(results)
+            else:
+                return results
         else:
-            return results
+            return {}
 
-    def show_order(self, event):
+    def show_details(self, event):
         """ Sends a GET request for an order's details """
         self.update_last_user_interaction()
-        row = self.orders_treeview.item(self.orders_treeview.selection()[0])
+        row = self.treeview_frame.tree.item(self.treeview_frame.tree.selection()[0])
         self.order_id = row['values'][0]
         result = self.order.get(id=self.order_id)
-        if "id" in result:
-            order_email = result['email']
-            order_transaction_id = result['transaction_id']
-            order_address = "\n".join((
-                result['name'],
-                f"{result['address_1']}\n{result['address_2']}"
-                    if result['address_2']
-                    else result['address_1'],
-                f"{result['city']}, {result['state']} {result['zip']}"
-            ))
-            tag = result['tags'][0]
-            tag_size = "Small" if tag['is_small'] == 1 else "Large"
-            tag_description = f"{tag['tag_type']['name']}, {tag_size}, " \
-                              f"{tag['tag_color']['name']}"
-            pet_type = tag['pet']['pet_type']['name']
-            tag_line_1 = tag['line_1']
-            tag_line_2 = tag['line_2'] or ""
-            sitename = "TrackMyPets.com"
-            pet_tracking_id = f"ID: {tag['pet']['tracking_id']}"
-            self.print_order_details(
-                order_email_text=order_email,
-                order_transaction_id_text=order_transaction_id, 
-                order_address_text=order_address,
-                tag_description_text=tag_description,pet_type_text=pet_type,
-                tag_line_1_text=tag_line_1, tag_line_2_text=tag_line_2,
-                sitename_text=sitename, pet_tracking_id_text=pet_tracking_id
-            )
-        else:
-            self.process_result(result)
+        if result is not None:
+            if "id" in result:
+                order_email = result['email']
+                order_transaction_id = result['transaction_id']
+                order_address = "\n".join((
+                    result['name'],
+                    f"{result['address_1']}\n{result['address_2']}"
+                        if result['address_2']
+                        else result['address_1'],
+                    f"{result['city']}, {result['state']} {result['zip']}"
+                ))
+                tag = result['tags'][0]
+                tag_size = "Small" if tag['is_small'] == 1 else "Large"
+                tag_description = f"{tag['tag_type']['name']}, {tag_size}, " \
+                                  f"{tag['tag_color']['name']}"
+                pet_type = tag['pet']['pet_type']['name']
+                tag_line_1 = tag['line_1']
+                tag_line_2 = tag['line_2'] or ""
+                sitename = "TrackMyPets.com"
+                pet_tracking_id = f"ID: {tag['pet']['tracking_id']}"
+                self.print_order_details(
+                    order_email_text=order_email,
+                    order_transaction_id_text=order_transaction_id, 
+                    order_address_text=order_address,
+                    tag_description_text=tag_description,pet_type_text=pet_type,
+                    tag_line_1_text=tag_line_1, tag_line_2_text=tag_line_2,
+                    sitename_text=sitename, pet_tracking_id_text=pet_tracking_id
+                )
+            else:
+                self.process_result(result)
 
     def update_order(self):
         """ Sends a PUT request to the order API """
@@ -316,28 +332,31 @@ class UserFrame(GuiFrame):
 
     def print_order_list(self, order_status_id):
         results = self.get_orders(order_status_id)
-        # title_text = f"{self.ORDER_STATUSES[order_status_id]} Orders"
+        title_text = f"{self.ORDER_STATUSES[order_status_id]} Orders"
+        self.title_label.config(text=title_text)
         self.order_status_id = order_status_id
-        # self.title_label.config(text=title_text)
         self.clear_order_details()
-        self.orders_treeview.delete(*self.orders_treeview.get_children())
-        if self.order_status_id > 1:
-            self.update_last_user_interaction()
-        else:
-            if results is None:
-                self.new_order_count = 0
+        self.treeview_frame.tree.delete(*self.treeview_frame.tree.get_children())
+        try:
+            if self.order_status_id > 1:
+                self.update_last_user_interaction()
             else:
-                self.new_order_count = len(results)
-        if results is not None:
-            for result in results:
-                values = (
-                    result['id'],
-                    result['email'],
-                    result['transaction_id'],
-                    result['order_status']['name'],
-                    result['created'],
-                )
-                self.orders_treeview.insert("", "end", text="text", values=values)
+                if "data" in results:
+                    self.new_order_count = 0
+                else:
+                    self.new_order_count = len(results['data'])
+            if "data" in results:
+                for result in results['data']:
+                    values = (
+                        result['id'],
+                        result['email'],
+                        result['transaction_id'],
+                        result['order_status']['name'],
+                        result['created'],
+                    )
+                    self.treeview_frame.tree.insert("", "end", text="text", values=values)
+        except:
+            alert = Alert("An error occurred.")
 
     def clear_order_details(self):
         """ Sets the current transaction_id to None and erases text values """
@@ -347,6 +366,7 @@ class UserFrame(GuiFrame):
     def print_order_details(self, **details):
         """ Replaces text values with highlighted order inromation """
         self.configure_radiobuttons()
+        self.treeview_frame.configure_paginate_buttons()
         for child in self.details_frame.winfo_children():
             if child.winfo_class() == "Text":
                 child.delete(1.0, tk.END)

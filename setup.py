@@ -8,7 +8,16 @@ Usage:
 from setuptools import setup
 
 APP = ["application.py"]
-DATA_FILES = [".env", "logo.ppm", ]
+DATA_FILES = [
+    ".env",
+    "logo.ppm",
+    "dashboard-active.ppm",
+    "dashboard-inactive.ppm",
+    "orders-active.ppm",
+    "orders-inactive.ppm",
+    "users-active.ppm",
+    "users-inactive.ppm",
+]
 OPTIONS = {"iconfile": "appicon.icns",}
 
 setup(

@@ -10,6 +10,8 @@ class Gui(tk.Tk):
 
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
+        # tk.Grid.rowconfigure(self, 0, weight=1)
+        tk.Grid.columnconfigure(self, 0, weight=1)
         self.winfo_toplevel().title("Track My Pets")
         self.title_font = tk.font.Font(family="Helvetica", size=48)
         self.container = tk.Frame(self, background="#fcfcfa")
@@ -38,6 +40,7 @@ class GuiFrame(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
+        tk.Grid.columnconfigure(self, 0, weight=1)
         self.controller = controller
 
     def draw_widgets(self):
