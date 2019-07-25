@@ -3,9 +3,13 @@
 import time
 import sys
 import os
-# from os.path import join, dirname
+from alert import *
 from frames import *
 from gui import *
+from PIL import Image, ImageTk
+
+import urllib.request
+import io
 
 class UsersFrame(GuiFrame):
 
@@ -14,14 +18,9 @@ class UsersFrame(GuiFrame):
     def __init__(self, parent, controller, user):
         sys.path.append(os.getcwd())
         GuiFrame.__init__(self, parent, controller)
-        self.user = user
+        self.model = user
         self.user_id = None
         self.update_last_user_interaction()
-
-        # style = Style()
-        # style.configure("style.Treeview", highlightthickness=0,  rowheight=32,
-        #                 font=("Helvetica", 14),bd=3)
-        # style.configure("style.Treeview.Heading", font=("Helvetica", 12, "bold"))
 
         self.widgets = [{
             "name":"header_frame",
@@ -63,9 +62,9 @@ class UsersFrame(GuiFrame):
                 "belongs_to": self,
                 "columns":{
                     "id": {"text": "ID", "width": 0, "exclude": True, },
-                    "email": {"text": "Email", "width": 180, },
-                    "name": {"text": "Name", "width": 280, },
-                    "phone": {"text": "Phone", "width": 80, },
+                    "email": {"text": "Email", "width": 182, },
+                    "name": {"text": "Name", "width": 253, },
+                    "phone": {"text": "Phone", "width": 105, },
                     "created": {"text": "Time", "width": 200, },
                 },
             },
@@ -91,22 +90,34 @@ class UsersFrame(GuiFrame):
             "name":"user_name_label",
             "class":tk.Label,
             "init":{"master":"details_frame","background":"#fcfcfa",
-                    "font":"Helvetica 12 bold","text":"Transaction ID:",},
-            "grid":{"row":2,"columnspan":2,"sticky":"nw","pady":(10,0),}
+                    "font":"Helvetica 12 bold","text":"Name:",},
+            "grid":{"row":2,"sticky":"nw","pady":(10,0),}
         },{
             "name":"user_name_text",
             "class":tk.Text,
             "init":{"master":"details_frame","background":"#fcfcfa",
-                    "highlightthickness":0,"width":50,"height":1,},
-            "grid":{"row":3,"columnspan":2,"sticky":"new","padx":(5,0),},
+                    "highlightthickness":0,"width":24,"height":1,},
+            "grid":{"row":3,"sticky":"new","padx":(5,0),},
         },{
-            "name":"order_address_label",
+            "name":"user_phone_label",
+            "class":tk.Label,
+            "init":{"master":"details_frame","background":"#fcfcfa",
+                    "font":"Helvetica 12 bold","text":"Phone:",},
+            "grid":{"row":2,"column":1,"sticky":"nw","pady":(10,0),}
+        },{
+            "name":"user_phone_text",
+            "class":tk.Text,
+            "init":{"master":"details_frame","background":"#fcfcfa",
+                    "highlightthickness":0,"width":24,"height":1,},
+            "grid":{"row":3,"column":1,"sticky":"new","padx":(5,0),},
+        },{
+            "name":"user_address_label",
             "class":tk.Label,
             "init":{"master":"details_frame","background":"#fcfcfa",
                     "font":"Helvetica 12 bold","text":"Address:",},
             "grid":{"row":4,"columnspan":2,"sticky":"nw","pady":(10,0),}
         },{
-            "name":"order_address_text",
+            "name":"user_address_text",
             "class":tk.Text,
             "init":{"master":"details_frame","background":"#fcfcfa",
                     "highlightthickness":0,"width":50,"height":4,},
@@ -117,89 +128,38 @@ class UsersFrame(GuiFrame):
             "init":{"master":"details_frame","background":"#d0cbc1","height":1,},
             "grid":{"row":6,"columnspan":2,"sticky":"ew","pady":(10,10),}
         },{
-            "name":"tag_description_label",
+            "name":"pets_label",
             "class":tk.Label,
             "init":{"master":"details_frame","background":"#fcfcfa",
-                    "font":"Helvetica 12 bold","text":"Shape, Size, & Color:",},
-            "grid":{"row":7,"sticky":"nw",}
+                    "font":"Helvetica 12 bold","text":"Pets",},
+            "grid":{"row":7,"columnspan":2,"sticky":"nw",}
         },{
-            "name":"tag_description_text",
-            "class":tk.Text,
-            "init":{"master":"details_frame","background":"#fcfcfa",
-                    "highlightthickness":0,"width":24,"height":1,},
-            "grid":{"row":8,"sticky":"new","padx":(5,0),},
-        },{
-            "name":"pet_type_label",
-            "class":tk.Label,
-            "init":{"master":"details_frame","background":"#fcfcfa",
-                    "font":"Helvetica 12 bold","text":"Pet Type:",},
-            "grid":{"row":7,"column":1,"sticky":"nw",}
-        },{
-            "name":"pet_type_text",
-            "class":tk.Text,
-            "init":{"master":"details_frame","background":"#fcfcfa",
-                    "highlightthickness":0,"width":24,"height":1,},
-            "grid":{"row":8,"column":1,"sticky":"new","padx":(5,0),},
-        },{
-            "name":"tag_line_1_label",
-            "class":tk.Label,
-            "init":{"master":"details_frame","background":"#fcfcfa",
-                    "font":"Helvetica 12 bold","text":"Tag Front:",},
-            "grid":{"row":9,"column":0,"sticky":"nw","pady":(10,0),}
-        },{
-            "name":"tag_line_1_text",
-            "class":tk.Text,
-            "init":{"master":"details_frame","background":"#fcfcfa",
-                    "highlightthickness":0,"width":24,"height":1,},
-            "grid":{"row":10,"column":0,"sticky":"nw","padx":(5,0),},
-        },{
-            "name":"tag_line_2_text",
-            "class":tk.Text,
-            "init":{"master":"details_frame","background":"#fcfcfa",
-                    "highlightthickness":0,"width":24,"height":1,},
-            "grid":{"row":11,"column":0,"sticky":"nw","padx":(5,0),},
-        },{
-            "name":"tag_back_label",
-            "class":tk.Label,
-            "init":{"master":"details_frame","background":"#fcfcfa",
-                    "font":"Helvetica 12 bold","text":"Tag Back:",},
-            "grid":{"row":9,"column":1,"sticky":"nw","pady":(10,0),}
-        },{
-            "name":"sitename_text",
-            "class":tk.Text,
-            "init":{"master":"details_frame","background":"#fcfcfa",
-                    "highlightthickness":0,"width":24,"height":1,},
-            "grid":{"row":10,"column":1,"sticky":"new","padx":(5,0),},
-        },{
-            "name":"pet_tracking_id_text",
-            "class":tk.Text,
-            "init":{"master":"details_frame","background":"#fcfcfa",
-                    "highlightthickness":0,"width":24,"height":1,},
-            "grid":{"row":11,"column":1,"sticky":"new","padx":(5,0),},
-        },{
-            "name":"details_hr_2_frame",
+            "name":"pets_frame",
             "class":tk.Frame,
-            "init":{"master":"details_frame","background":"#d0cbc1","height":1,},
-            "grid":{"row":12,"columnspan":2,"sticky":"ew","pady":(10,10),}
+            "init":{"master":"details_frame","background":"#d0cbc1","height":48,},
+            "grid":{"row":8,"columnspan":2,"sticky":"ew","pady":(10,10),}
         },{
-            "name":"update_label",
-            "class":tk.Label,
-            "init":{"master":"details_frame","background":"#fcfcfa",
-                    "font":"Helvetica 12 bold","text":"Update Status To:",
-                    "state":tk.DISABLED,},
-            "grid":{"row":13,"columnspan":2,"sticky":"nw",}
-        },{
-            "name":"navigation_frame",
-            "class":NavigationFrame, 
-            "init":{"master":None,"controller":self.controller,},
-            "grid":{"row":2,"sticky":"nsew",}
+            "name": "navigation_frame",
+            "class": NavigationFrame, 
+            "init":{
+                "master": None,
+                "controller": self.controller,
+                "buttons": {
+                    "orders": "inactive",
+                    "users": "active",
+                },
+            },
+            "grid": {"row": 2, "sticky": "nsew", }
         },]
 
         self.draw_widgets()
+        for column in range(1, 4):
+            tk.Grid.columnconfigure(self.pets_frame, column, weight=1)
+
 
     def get_users(self):
         """ Sends a GET request to the users API for a list of users """
-        results = self.user.get()
+        results = self.model.get()
         if results is not None:
             if "message" in results:
                 self.process_result(results)
@@ -213,35 +173,27 @@ class UsersFrame(GuiFrame):
         self.update_last_user_interaction()
         row = self.treeview_frame.tree.item(self.treeview_frame.tree.selection()[0])
         self.user_id = row['values'][0]
-        result = self.user.get(id=self.user_id)
+        result = self.model.get(id=self.user_id)
         if result is not None:
             if "id" in result:
                 user_email = result['email']
                 user_name = result['name']
-                # order_transaction_id = result['transaction_id']
-                # order_address = "\n".join((
-                #     result['name'],
-                #     f"{result['address_1']}\n{result['address_2']}"
-                #         if result['address_2']
-                #         else result['address_1'],
-                #     f"{result['city']}, {result['state']} {result['zip']}"
-                # ))
-                # tag = result['tags'][0]
-                # tag_size = "Small" if tag['is_small'] == 1 else "Large"
-                # tag_description = f"{tag['tag_type']['name']}, {tag_size}, " \
-                #                   f"{tag['tag_color']['name']}"
-                # pet_type = tag['pet']['pet_type']['name']
-                # tag_line_1 = tag['line_1']
-                # tag_line_2 = tag['line_2'] or ""
-                # sitename = "TrackMyPets.com"
-                # pet_tracking_id = f"ID: {tag['pet']['tracking_id']}"
+                user_phone = result['phone']
+                user_address = "\n".join((
+                    result['name'],
+                    f"{result['address_1']}\n{result['address_2']}"
+                        if result['address_2']
+                        else result['address_1'],
+                    f"{result['city']}, {result['state']} {result['zip']}"
+                ))
+                user_pets = result['pets']
+
                 self.print_user_details(
                     user_email_text=user_email,
                     user_name_text=user_name,
-                    # order_address_text=order_address,
-                    # tag_description_text=tag_description,pet_type_text=pet_type,
-                    # tag_line_1_text=tag_line_1, tag_line_2_text=tag_line_2,
-                    # sitename_text=sitename, pet_tracking_id_text=pet_tracking_id
+                    user_phone_text=user_phone,
+                    user_address_text=user_address,
+                    user_pets=user_pets
                 )
             else:
                 self.process_result(result)
@@ -249,17 +201,11 @@ class UsersFrame(GuiFrame):
     def print_user_list(self):
         results = self.get_users()
         self.clear_user_details()
-        self.treeview_frame.tree.delete(*self.treeview_frame.tree.get_children())
-        if "data" in results:
-            for result in results['data']:
-                values = (
-                    result['id'],
-                    result['email'],
-                    result['name'],
-                    result['email'],
-                    result['created'],
-                )
-                self.treeview_frame.tree.insert("", "end", text="text", values=values)
+        try:
+            if "data" in results:
+                self.treeview_frame.print_list(results)
+        except:
+            alert = Alert("An error occurred.")
 
     def clear_user_details(self):
         """ Sets the current transaction_id to None and erases text values """
@@ -267,14 +213,43 @@ class UsersFrame(GuiFrame):
         self.print_user_details()
 
     def print_user_details(self, **details):
-        """ Replaces text values with highlighted user inromation """
-        self.treeview_frame.configure_paginate_buttons()
+        """ Replaces text values with highlighted user information """
+        pets = details.pop("user_pets", [])
         for child in self.details_frame.winfo_children():
             if child.winfo_class() == "Text":
                 child.delete(1.0, tk.END)
+        for child in self.pets_frame.winfo_children():
+            child.destroy()
         for key, value in details.items():
             text = getattr(self, key)
             text.insert(tk.END, value)
+        i = 0
+        for pet in pets:
+            self.print_pet(pet, i)
+            i += 1
+
+    def print_pet(self,pet, i):
+        photo_image = ImageTk.PhotoImage(self.photo_image(pet['thumbnail_url']))
+        image_label = tk.Label(self.pets_frame, background="#fcfcfa")
+        image_label.configure(image=photo_image, width=32, height=32)
+        image_label.grid(row=i, sticky="nsew", ipadx=5, ipady=2)
+        image_label.image = photo_image
+        name_label = tk.Label(self.pets_frame, text=pet['name'],
+                         background="#fcfcfa", anchor="w")
+        name_label.grid(row=i, column=1, sticky="nsew", ipadx=5)
+        pet_type_label = tk.Label(self.pets_frame, text=pet['pet_type']['name'],
+                         background="#fcfcfa")
+        pet_type_label.grid(row=i, column=2, sticky="nsew", ipadx=5)
+        tracking_id_label = tk.Label(self.pets_frame, text=pet['tracking_id'],
+                         background="#fcfcfa")
+        tracking_id_label.grid(row=i, column=3, sticky="nsew", ipadx=5)
+
+    def photo_image(self, url):
+        request = urllib.request.urlopen(url)
+        data = request.read()
+        request.close()
+        image = Image.open(io.BytesIO(data))
+        return image.resize((32, 32), Image.ANTIALIAS)
 
     def update_last_user_interaction(self):
         self.last_user_interaction = int(time.time())

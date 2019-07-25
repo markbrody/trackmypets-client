@@ -21,13 +21,11 @@ class RestClient:
 
     def get(self, **options):
         options.update({"method": "GET"})
-        response = self.__request(**options)
-        return json.loads(response)
+        return self.request(**options)
 
     def put(self, **options):
         options.update({"method": "PUT"})
-        response = self.__request(**options)
-        return json.loads(response)
+        return self.request(**options)
 
     def post(self):
         pass
@@ -35,26 +33,31 @@ class RestClient:
     def delete(self):
         pass
 
-    def __request(self, **options):
-        if self.api_url is not None:
-            method = options.pop("method", "GET")
-            id = options.pop("id", None)
-            data = options.pop("data", {})
-            params = options.pop("params", {})
-            headers = {
-                "Accept": "application/json",
-                "Authorization": f"Bearer {self.token}",
-            }
+    def request(self, **options):
+        method = options.pop("method", "GET")
+        url = options.pop("url", None)
+        id = options.pop("id", None)
+        data = options.pop("data", {})
+        params = options.pop("params", {})
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Bearer {self.token}",
+        }
+        if url is not None:
+            api_url = url
+        elif self.api_url is not None:
             api_url = self.api_url if id is None else self.api_url + str(id)
-            try:
-                response = requests.request(
-                    method, api_url, headers=headers, params=params, data=data,
-                    timeout=(5, 30)
-                )
-            except:
-                alert = Alert("Request failed.")
-            else:
-                return response.text
+        else:
+            api_url = "http://localhost/"
+        try:
+            response = requests.request(
+                method, api_url, headers=headers, params=params, data=data,
+                timeout=(5, 30)
+            )
+        except:
+            alert = Alert("Request failed.")
+        else:
+            return json.loads(response.text)
 
 if __name__ == "__main__":
     rest_client = RestClient("foo")

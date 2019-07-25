@@ -35,7 +35,9 @@ class Application:
     def run(self):
         orders_frame = self.gui.frames['OrdersFrame']
         if self.auth.token is not None:
-            self.gui.frames['OrdersFrame'].print_order_list(orders_frame.order_status_id)
+            self.gui.frames['OrdersFrame'].print_order_list(
+                self.gui.frames['OrdersFrame'].order_status_id
+            )
             self.gui.frames['UsersFrame'].print_user_list()
             self.gui.raise_frame(orders_frame)
 
@@ -63,7 +65,7 @@ class Application:
         orders_frame = self.gui.frames['OrdersFrame']
         if now - orders_frame.last_user_interaction > orders_frame.IDLE_TIME:
             new_orders = orders_frame.get_orders(1)
-            if len(new_orders) > orders_frame.new_order_count:
+            if len(new_orders['data']) > orders_frame.new_order_count:
                 orders_frame.print_order_list(1)
                 self.gui.bell()
             else:

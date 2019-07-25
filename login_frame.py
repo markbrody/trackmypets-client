@@ -88,6 +88,6 @@ class LoginFrame(GuiFrame):
         token = self.auth.request_new_token(username=username, password=password)
         if token:
             self.controller.raise_frame(self.controller.frames['OrdersFrame'])
-            self.controller.frames['OrdersFrame'].order.token = token
+            self.controller.frames['OrdersFrame'].model.token = token
             self.controller.frames['OrdersFrame'].print_order_list(1)
 
