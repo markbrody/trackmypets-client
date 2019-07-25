@@ -182,16 +182,22 @@ class UsersFrame(GuiFrame):
         result = self.model.get(id=self.user_id)
         if result is not None:
             if "id" in result:
-                user_email = result['email']
-                user_name = result['name']
-                user_phone = f"({result['phone'][:3]}) {result['phone'][3:6]}" \
-                             f"-{result['phone'][6:10]}" \
-                             if result['phone'] else ""
+                email = result['email']
+                name = result['name'] or ""
+                phone = result['phone'] or ""
+                address_1 = result['address_1'] or ""
+                address_2 = result['address_2'] or ""
+                city = result['city'] or ""
+                state = result['state'] or ""
+                zip = result['zip'] or ""
+
+                user_email = email
+                user_name = name
+                user_phone = f"({phone[:3]}) {phone[3:6]}-{phone[6:10]}" if phone else ""
                 user_address = "\n".join((
-                    result['name'],
-                    f"{result['address_1']}\n{result['address_2']}" \
-                        if result['address_2'] else result['address_1'],
-                    f"{result['city']}, {result['state']} {result['zip']}"
+                    name,
+                    f"{address}\n{address_2}" if address_2 else address_1,
+                    f"{city}, {state} {zip}" if city else ""
                 ))
                 user_pets = result['pets']
 

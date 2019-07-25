@@ -7,7 +7,7 @@ from version import *
 
 class CheckUpdates(tk.Tk):
 
-    VERSION = 1.1
+    VERSION = 1.2
 
     def __init__(self, token=None):
         if token is not None:
